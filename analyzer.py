@@ -45,7 +45,7 @@ def check_module_freq(filename):
     return returnDict
 
 def check_properties(filename):
-    accumulatorDict = { "xVelSum": 0.0, "yVelSum": 0.0, "lap": 0 } # Add more accumulators if required
+    accumulatorDict = { "xVelAvg": 0.0, "yVelAvg": 0.0, "lap": 0 } # Add more accumulators if required
     msgTopics = ["/can_msgs/velocity_estimation", "/common/lap_counter"] # Add more topics if required
 
     # TODO: implement similar logic as for check_module_frequency
