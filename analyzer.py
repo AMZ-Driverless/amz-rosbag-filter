@@ -73,15 +73,25 @@ def ssh_to_nas():
     lines = stdout.readlines()
     # TODO: after SSHing execute the appropriate commands depending on user input
 
-def analyse_dir_content(dirName, isRecursive=False):
+def is_rosbag(path):
+    file_name, file_extension = os.path.splitext(path)
+
+    if not os.path.isfile(path):
+        return False
+    if file_extension != '.bag' and file_extension != '.bag'
+        return False
+
+    return True
+
+def analyse_dir_content(absoluteDirName, isRecursive=False):
     # TODO: create a CSV file, analyse every file in the given directory and save the resulting CSV
 
     # TODO: remove existing rosbag_analysis.csv files in this directory
 
     # Analysis
-    for objName in os.listdir(dirName):
-        fullObjPath = dirname + '/' + objName
-        if is_rosbag(fullObjPath): # TODO: implement this function
+    for objName in os.listdir(absoluteDirName):
+        fullObjPath = absoluteDirName + '/' + objName
+        if is_rosbag(fullObjPath):
             # TODO: analyse the rosbag file
             # 1) create a rosbag_analysis.csv file if it does not exist
             # 2) add row corresponding to CSV
