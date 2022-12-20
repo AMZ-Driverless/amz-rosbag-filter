@@ -6,6 +6,7 @@ import argparse
 import os
 import rosbag
 import yaml
+import csv
 import paramiko
 
 def analyzer_arg_parser():
@@ -45,7 +46,7 @@ def check_module_freq(filename):
     return returnDict
 
 def check_rosbag_properties(filename):
-    accumulatorDict = { "xVelAvg": 0.0, "yVelAvg": 0.0, "lap": 0 } # Add more accumulators if required
+    accumulatorDict = { "xVelAvg": 0.0, "yVelAvg": 0.0, "laps": 0 } # Add more accumulators if required
     msgTopics = ["/can_msgs/velocity_estimation", "/common/lap_counter"] # Add more topics if required
 
     velMsgCounter = 0
@@ -58,7 +59,7 @@ def check_rosbag_properties(filename):
             velMsgCounter += 1
 
         if topic == "/common/lap_counter":
-            accumulatorDict["lap"] += msgDict["data"]
+            accumulatorDict["laps"] += msgDict["data"]
 
     accumulatorDict["xVelSum"] /= velMsgCounter
     accumulatorDict["yVelSum"] /= velMsgCounter
@@ -84,18 +85,28 @@ def is_rosbag(path):
     return True
 
 def analyse_dir_content(absoluteDirName, isRecursive=False):
-    # TODO: create a CSV file, analyse every file in the given directory and save the resulting CSV
-
-    # TODO: remove existing rosbag_analysis.csv files in this directory
+    # Remove existing rosbag_analysis.csv file in this directory (could be outdated)
+    analysisFileName = absoluteDirName + 'rosbag_analysis.csv'
+    if os.path.isfile(analysisFileName):
+        os.remove(analysisFileName)
+        print(colored(f'Removing {analysisFileName}: a new analysis file will be created for the directory.', 'cyan'))
 
     # Analysis
     for objName in os.listdir(absoluteDirName):
         fullObjPath = absoluteDirName + '/' + objName
         if is_rosbag(fullObjPath):
-            # TODO: analyse the rosbag file
-            # 1) create a rosbag_analysis.csv file if it does not exist
-            # 2) add row corresponding to CSV
-            # 3) inform the user via standard output that file was succesfully analysed
+            # TODO: analyse the rosbag file (put everything in try/raise to forward exceptions)
+            with open(analysisFileName, 'w', encoding='UTF-8') as f:
+                writer = csv.writer(f)
+
+                # 1) If analysis file is empty - add header
+                if os.stat(analysisFileName).st_size == 0:
+                    header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur']
+                    writer.writerow(header)
+
+                # 2) add row corresponding to current file to CSV
+
+                # 3) inform the user via standard output that file was succesfully analysed
         elif os.path.isdir(fullObjPath) and isRecursive:
             analyse_dir_content(fullObjPath, isRecursive)
         else:
