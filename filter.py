@@ -18,8 +18,5 @@ def arg_parser():
     parser.add_argument('-r', type=str, help="The directory with rosbags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
     parser.add_argument('-s', type=str, help="Takes an absolute path to a directory where the filtered rosbags should be stored")
 
-    parser.add_argument('--nas-load', action='store_true', help="Load directory from the NAS")
-    parser.add_argument('--nas-upload', action='store_true', help="Upload filtered rosbags to the NAS")
-
     args = parser.parse_args()
     return args
