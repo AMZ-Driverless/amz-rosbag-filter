@@ -18,34 +18,36 @@ def analyzer_arg_parser():
     args = parser.parse_args()
     return args
 
-def check_module_freq(filename):
+def check_module_freq(path):
     # Read rosbag info
-    topicInfoDict = yaml.safe_load(rosbag.Bag(filename, 'r')._get_yaml_info())["topics"]
+    infoDict = yaml.safe_load(rosbag.Bag(path, 'r')._get_yaml_info())
 
-    returnDict = { "per": True, "est": True, "con": True }
-    for topicObj in topicInfoDict:
+    returnDict = { "per": True, "est": True, "con": True, "dur": infoDict["duration"] }
+    # Iterate over all topics present in the 'rosbag info'
+    for topicObj in infoDict["topics"]:
         topicModule = topicObj["topic"].split(os.path.sep)[1]
         topicFreq = topicObj.get("frequency")
+        targetFreqency = 9 # This value is set to 9 because if something runs at (for example) 9.6 Hz, we would still like to count it as 10 Hz
 
-        if topicModule == "perception" and (topicFreq and topicFreq < 9):
+        if topicModule == "perception" and (topicFreq and topicFreq < targetFreqency):
             returnDict["per"] = False
-        if topicModule == "estimation" and (topicFreq and topicFreq < 9):
+        if topicModule == "estimation" and (topicFreq and topicFreq < targetFreqency):
             returnDict["est"] = False
             # TODO: Adapt! Estimation is edge case! Has messages with extra low frequency!
             # These two have frequency although they really should not
             # /estimation/viz/boundary_selector
             # /estimation/local_map_mode
-        if topicModule == "control" and (topicFreq and topicFreq < 9):
+        if topicModule == "control" and (topicFreq and topicFreq < targetFreqency):
             returnDict["con"] = False
 
     return returnDict
 
-def check_rosbag_properties(filename):
+def check_rosbag_properties(path):
     accumulatorDict = { "vel": 0.0, "laps": 0 } # Add more accumulators if required
     msgTopics = ["/can_msgs/velocity_estimation", "/common/lap_counter"] # Add more topics if required
 
     velMsgCounter = 0
-    for topic, msg, t in rosbag.Bag(filename, 'r').read_messages(topics=msgTopics):
+    for topic, msg, t in rosbag.Bag(path, 'r').read_messages(topics=msgTopics):
         msgDict = message_converter.convert_ros_message_to_dictionary(msg)
 
         if topic == "/can_msgs/velocity_estimation":
@@ -71,16 +73,16 @@ def is_rosbag(path):
 
     return True
 
-def analyse_dir_content(absoluteDirName, isRecursive=False):
+def analyse_dir_content(absoluteDirPath, isRecursive=False):
     # Remove existing rosbag_analysis.csv file in this directory (could be outdated)
-    analysisFileName = absoluteDirName + 'rosbag_analysis.csv'
+    analysisFileName = absoluteDirPath + 'rosbag_analysis.csv'
     if os.path.isfile(analysisFileName):
         os.remove(analysisFileName)
-        print(colored(f'Removing {analysisFileName}: a new analysis file will be created for the directory.', 'cyan'))
+        print(colored(f'[WARNING]: Removing {analysisFileName} - a new analysis file will be created for the directory.', 'cyan'))
 
-    # Analysis
-    for objName in os.listdir(absoluteDirName):
-        absoluteObjPath = f'{absoluteDirName}/{objName}'
+    # Run analysis for this directory
+    for objName in os.listdir(absoluteDirPath):
+        absoluteObjPath = f'{absoluteDirPath}/{objName}'
         if is_rosbag(absoluteObjPath):
             # TODO: analyse the rosbag file (put everything in try/raise to forward exceptions)
             with open(analysisFileName, 'w', encoding='UTF-8') as f:
@@ -91,18 +93,23 @@ def analyse_dir_content(absoluteDirName, isRecursive=False):
                     header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur']
                     writer.writerow(header)
 
-                # 2) add row corresponding to current file to CSV
+                # 2) Add row corresponding to current file to CSV
+                rosbagProperties = check_rosbag_properties(absoluteObjPath)
+                moduleFreq = check_module_freq(absoluteObjPath)
+                row = [objName, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
+                writer.writerow(row)
 
-                # 3) inform the user via standard output that file was succesfully analysed
+                # 3) Inform the user via standard output that file was succesfully analysed
+                print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
         else:
-            print(colored(f'Ignoring {absoluteObjPath}: it is not a rosbag or directory!', 'cyan'))
+            print(colored(f'[WARNING]: Ignoring {absoluteObjPath} - it is not a rosbag or directory!', 'cyan'))
 
 def main(args):
     # Check the path which user gave as input
-    assert not args.d == "", f"The script requires the path of the directory to analyse as parameter!"
-    assert os.path.isdir(args.d), f"The passed directory does not exist!"
+    assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
+    assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist!'
 
     analyse_dir_content(args.d, args.r)
 
