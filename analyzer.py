@@ -75,7 +75,7 @@ def is_rosbag(path):
 
 def analyse_dir_content(absoluteDirPath, isRecursive=False):
     # Remove existing rosbag_analysis.csv file in this directory (could be outdated)
-    analysisFileName = absoluteDirPath + 'rosbag_analysis.csv'
+    analysisFileName = f'{absoluteDirPath}/rosbag_analysis.csv'
     if os.path.isfile(analysisFileName):
         os.remove(analysisFileName)
         print(colored(f'[WARNING]: Removing {analysisFileName} - a new analysis file will be created for the directory.', 'cyan'))
@@ -101,6 +101,8 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
 
                 # 3) Inform the user via standard output that file was succesfully analysed
                 print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
+
+                # TODO: 4) if any exception/error occured - catch it here!
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
         else:
