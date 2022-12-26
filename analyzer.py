@@ -12,8 +12,8 @@ def analyzer_arg_parser():
     parser = argparse.ArgumentParser(description="Rosbag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
 
     groupFileDir = parser.add_mutually_exclusive_group(required=True)
-    groupFileDir.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all rosbags within it be analysed", default="")
-    parser.add_argument('-r', type=str, help="The directory with rosbags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
+    groupFileDir.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all ROSBags within it be analysed", default="")
+    parser.add_argument('-r', type=str, help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
 
     args = parser.parse_args()
     return args
@@ -59,7 +59,11 @@ def check_rosbag_properties(path):
         if topic == "/common/lap_counter":
             accumulatorDict["laps"] += msgDict["data"]
 
-    accumulatorDict["vel"] /= velMsgCounter
+    # Handle potential zero division (case where no velocity messages were posted)
+    if velMsgCounter == 0:
+        accumulatorDict["vel"] = 0
+    else:
+        accumulatorDict["vel"] /= velMsgCounter
 
     return accumulatorDict
 
@@ -80,33 +84,39 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
         os.remove(analysisFileName)
         print(colored(f'[WARNING]: Removing {analysisFileName} - a new analysis file will be created for the directory.', 'cyan'))
 
+    # Add header to the CSV file
+    with open(analysisFileName, 'w', encoding='UTF-8') as f:
+        writer = csv.writer(f)
+        header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur']
+        writer.writerow(header)
+
     # Run analysis for this directory
     for objName in os.listdir(absoluteDirPath):
-        absoluteObjPath = f'{absoluteDirPath}/{objName}'
+        absoluteObjPath = f'{absoluteDirPath}{objName}'
         if is_rosbag(absoluteObjPath):
-            # TODO: analyse the rosbag file (put everything in try/raise to forward exceptions)
-            with open(analysisFileName, 'w', encoding='UTF-8') as f:
-                writer = csv.writer(f)
+            with open(analysisFileName, 'a', encoding='UTF-8') as f:
+                appender = csv.writer(f)
+                # Add row corresponding to current file to CSV
+                try:
+                    moduleFreq = check_module_freq(absoluteObjPath)
+                    rosbagProperties = check_rosbag_properties(absoluteObjPath)
+                    row = [objName, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
+                    appender.writerow(row)
 
-                # 1) If analysis file is empty - add header
-                if os.stat(analysisFileName).st_size == 0:
-                    header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur']
-                    writer.writerow(header)
+                    # Inform the user via standard output that file was succesfully analysed
+                    print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
 
-                # 2) Add row corresponding to current file to CSV
-                rosbagProperties = check_rosbag_properties(absoluteObjPath)
-                moduleFreq = check_module_freq(absoluteObjPath)
-                row = [objName, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
-                writer.writerow(row)
-
-                # 3) Inform the user via standard output that file was succesfully analysed
-                print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
-
-                # TODO: 4) if any exception/error occured - catch it here!
+                # If any exception/error occured - catch it here!
+                except rosbag.ROSBagUnindexedException:
+                    print(colored(f'[ERROR]: The ROSBag {absoluteObjPath} is unindexed! Reindex it first in order to make it usable.', 'red'))
+                except rosbag.ROSBagException as err:
+                    print(colored(f'[ERROR]: In file {absoluteObjPath} - {err}', 'red'))
+                except KeyboardInterrupt:
+                    print("Exiting ...")
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
         else:
-            print(colored(f'[WARNING]: Ignoring {absoluteObjPath} - it is not a rosbag or directory!', 'cyan'))
+            print(colored(f'[WARNING]: Ignoring {absoluteObjPath} - it is not a ROSBag!', 'cyan'))
 
 def main(args):
     # Check the path which user gave as input

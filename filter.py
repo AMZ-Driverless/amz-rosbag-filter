@@ -1,6 +1,7 @@
 import argparse
 import os
 import pandas as pd # Use to read the rosbag_analysis.csv file
+from termcolor import colored
 
 def filter_arg_parser():
     # Create a parser object to handle commandline input
@@ -39,5 +40,5 @@ def main(args):
 
 
 if __name__ == "__main__":
-    args = analyzer_arg_parser()
+    args = filter_arg_parser()
     main(args)
