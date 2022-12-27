@@ -9,11 +9,11 @@ import math
 
 def analyzer_arg_parser():
      # Create a parser object to handle commandline input
-    parser = argparse.ArgumentParser(description="Rosbag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
+    parser = argparse.ArgumentParser(description="ROSBag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
 
     groupFileDir = parser.add_mutually_exclusive_group(required=True)
     groupFileDir.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all ROSBags within it be analysed", default="")
-    parser.add_argument('-r', type=str, help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
+    parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
 
     args = parser.parse_args()
     return args
@@ -82,7 +82,7 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
     analysisFileName = f'{absoluteDirPath}/rosbag_analysis.csv'
     if os.path.isfile(analysisFileName):
         os.remove(analysisFileName)
-        print(colored(f'[WARNING]: Removing {analysisFileName} - a new analysis file will be created for the directory.', 'cyan'))
+        print(colored(f'[INFO]: Removing {analysisFileName} - a new analysis file will be created for the directory.', 'cyan'))
 
     # Add header to the CSV file
     with open(analysisFileName, 'w', encoding='UTF-8') as f:
@@ -92,7 +92,8 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
 
     # Run analysis for this directory
     for objName in os.listdir(absoluteDirPath):
-        absoluteObjPath = f'{absoluteDirPath}{objName}'
+        absoluteObjPath = f'{absoluteDirPath}/{objName}'
+        # If objName is a ROSBag - analyse it
         if is_rosbag(absoluteObjPath):
             with open(analysisFileName, 'a', encoding='UTF-8') as f:
                 appender = csv.writer(f)
@@ -100,23 +101,28 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
                 try:
                     moduleFreq = check_module_freq(absoluteObjPath)
                     rosbagProperties = check_rosbag_properties(absoluteObjPath)
-                    row = [objName, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
+                    row = [absoluteObjPath, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
                     appender.writerow(row)
 
                     # Inform the user via standard output that file was succesfully analysed
                     print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
 
                 # If any exception/error occured - catch it here!
-                except rosbag.ROSBagUnindexedException:
-                    print(colored(f'[ERROR]: The ROSBag {absoluteObjPath} is unindexed! Reindex it first in order to make it usable.', 'red'))
                 except rosbag.ROSBagException as err:
                     print(colored(f'[ERROR]: In file {absoluteObjPath} - {err}', 'red'))
                 except KeyboardInterrupt:
                     print("Exiting ...")
+        # If objName is a directory and -r flag was passed - analyse the contents of that directory
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
+        elif os.path.isdir(absoluteObjPath) and not isRecursive:
+            print(colored(f'[INFO]: Ignoring {absoluteObjPath} - it is a directory. To analyse nested directories, use the -r flag.', 'cyan'))
+        # If objName is rosbag_analysis.csv - ignore it
+        elif os.path.basename(absoluteObjPath) == 'rosbag_analysis.csv':
+            continue
+        # If objName is something else - skip it
         else:
-            print(colored(f'[WARNING]: Ignoring {absoluteObjPath} - it is not a ROSBag!', 'cyan'))
+            print(colored(f'[INFO]: Ignoring {absoluteObjPath} - it is not a ROSBag!', 'cyan'))
 
 def main(args):
     # Check the path which user gave as input
@@ -124,6 +130,8 @@ def main(args):
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist!'
 
     analyse_dir_content(args.d, args.r)
+
+    print(colored(f'[SUCCESS]: Execution finished! All files have been checked out.', 'green'))
 
 if __name__ == "__main__":
     args = analyzer_arg_parser()
