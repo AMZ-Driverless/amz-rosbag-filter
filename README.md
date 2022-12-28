@@ -1,6 +1,6 @@
 # AMZ ROSBag Filter v1.0
 ### What is it?
-This tool allows for simple and efficient search for potentially useful _ROSBags_. The idea is: whenever you are looking for a specific _ROSBag_, you can tell the tool what you need and it will output **paths** to _ROSBags_ which **could** be potentially interesting for you. This spares you the effort of investigating every single _ROSBag_ by yourseft manually with `rosbag info`.
+This tool allows for simple and efficient search for potentially useful _ROSBags_. The idea is: whenever you are looking for a specific _ROSBag_, you can tell the tool what you need and it will output **paths** to _ROSBags_ which **could** be potentially interesting for you. This spares you the effort of investigating every single _ROSBag_ manually with `rosbag info`.
 ### Installation
 The tool is targeted to use on the **NAS**, where it has already been installed and is ready to use (have a look at `Usage` section of this README), but you could theoretically also deploy it on your local machine. For this you need to:
 1. Clone the repository
