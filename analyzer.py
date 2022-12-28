@@ -10,8 +10,8 @@ import math
 def analyzer_arg_parser():
      # Create a parser object to handle commandline input
     parser = argparse.ArgumentParser(description="ROSBag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
-    parser.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all ROSBags within it be analysed", required=True)
-    parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
+    parser.add_argument('-d', type=str, help="Not optional - take an absolute path to a directory and analyses all ROSBags within it", required=True)
+    parser.add_argument('-r', action='store_true', help="The directory passed with -d flag is searched recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
 
     args = parser.parse_args()
     return args
