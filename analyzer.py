@@ -10,9 +10,7 @@ import math
 def analyzer_arg_parser():
      # Create a parser object to handle commandline input
     parser = argparse.ArgumentParser(description="ROSBag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
-
-    groupFileDir = parser.add_mutually_exclusive_group(required=True)
-    groupFileDir.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all ROSBags within it be analysed", default="")
+    parser.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all ROSBags within it be analysed", required=True)
     parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
 
     args = parser.parse_args()
@@ -21,25 +19,35 @@ def analyzer_arg_parser():
 def check_module_freq(path):
     # Read rosbag info
     infoDict = yaml.safe_load(rosbag.Bag(path, 'r')._get_yaml_info())
+    # Create a list of edge cases - so topics which should be excluded from the frequency search for various reasons
+    edgeCases = ['/estimation/boundary', '/estimation/viz/point_of_interest', '/estimation/viz/boundary_selector', '/estimation/local_map_mode']
+    # This value is set to 9 because if something runs at (for example) 9.6 Hz, we would still like to count it as 10 Hz
+    targetFreqency = 9
+    returnDict = { "dur": infoDict["duration"] }
 
-    returnDict = { "per": True, "est": True, "con": True, "dur": infoDict["duration"] }
     # Iterate over all topics present in the 'rosbag info'
     for topicObj in infoDict["topics"]:
+        # Check if this topic should be ignored
+        if topicObj["topic"] in edgeCases:
+            continue
+
         topicModule = topicObj["topic"].split(os.path.sep)[1]
         topicFreq = topicObj.get("frequency")
-        targetFreqency = 9 # This value is set to 9 because if something runs at (for example) 9.6 Hz, we would still like to count it as 10 Hz
 
-        # TODO: First check if there are any messages to topics at all! Otherwise returns true even if messages absent!
-        if topicModule == "perception" and (topicFreq and topicFreq < targetFreqency):
-            returnDict["per"] = False
-        if topicModule == "estimation" and (topicFreq and topicFreq < targetFreqency):
-            returnDict["est"] = False
-            # TODO: Adapt! Estimation is edge case! Has messages with extra low frequency!
-            # These two have frequency although they really should not
-            # /estimation/viz/boundary_selector
-            # /estimation/local_map_mode
+        if topicModule == "perception" and (topicFreq and topicFreq > targetFreqency):
+            returnDict["per"] = True
+        if topicModule == "estimation" and (topicFreq and topicFreq > targetFreqency):
+            returnDict["est"] = True
         if topicModule == "control" and (topicFreq and topicFreq < targetFreqency):
-            returnDict["con"] = False
+            returnDict["con"] = True
+
+    # If topic for a module never occures - mark it as False
+    if not 'per' in returnDict:
+        returnDict["per"] = False
+    if not 'est' in returnDict:
+        returnDict["est"] = False
+    if not 'con' in returnDict:
+        returnDict["con"] = False
 
     return returnDict
 
@@ -107,7 +115,6 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
 
                     # Inform the user via standard output that file was succesfully analysed
                     print(colored(f'[SUCCESS]: File {absoluteObjPath} has been succesfully analysed.', 'green'))
-
                 # If any exception/error occured - catch it here!
                 except rosbag.ROSBagException as err:
                     print(colored(f'[ERROR]: In file {absoluteObjPath} - {err}', 'red'))
@@ -116,6 +123,7 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
         # If objName is a directory and -r flag was passed - analyse the contents of that directory
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
+        # If objName is a directory and -r flag was not passed - ignore it
         elif os.path.isdir(absoluteObjPath) and not isRecursive:
             print(colored(f'[INFO]: Ignoring {absoluteObjPath} - it is a directory.', 'cyan'))
         # If objName is rosbag_analysis.csv - ignore it
@@ -131,7 +139,6 @@ def main(args):
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist!'
 
     analyse_dir_content(args.d, args.r)
-
     print(colored(f'[SUCCESS]: Execution finished! All files have been checked out.', 'green'))
 
 if __name__ == "__main__":

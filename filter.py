@@ -20,7 +20,7 @@ def filter_arg_parser():
     parser.add_argument('--laps', type=int, default=0, help="Filter for rosbags where car does at least X laps")
     parser.add_argument('--dur', type=int, default=60, help="Filter for rosbags which are at least X seconds long")
 
-    parser.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all rosbags within it be filtered")
+    parser.add_argument('-d', type=str, help="Takes an absolute path to a directory and loads all rosbags within it be filtered", required=True)
     parser.add_argument('-r', action='store_true', help="The directory with rosbags is filtered recursively (entire file tree starting at given path is filtered).")
 
     args = parser.parse_args()
@@ -52,7 +52,6 @@ def filter_dir_content(absoluteDirPath, args, isRecursive=False):
     # Print the paths of the filtered ROSBags
     print(df['file_name'].to_string(index=False))
 
-# TODO: Add recursive execution for nested directories
 def main(args):
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist!'
