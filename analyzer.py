@@ -29,6 +29,7 @@ def check_module_freq(path):
         topicFreq = topicObj.get("frequency")
         targetFreqency = 9 # This value is set to 9 because if something runs at (for example) 9.6 Hz, we would still like to count it as 10 Hz
 
+        # TODO: First check if there are any messages to topics at all! Otherwise returns true even if messages absent!
         if topicModule == "perception" and (topicFreq and topicFreq < targetFreqency):
             returnDict["per"] = False
         if topicModule == "estimation" and (topicFreq and topicFreq < targetFreqency):
@@ -105,7 +106,7 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
                     appender.writerow(row)
 
                     # Inform the user via standard output that file was succesfully analysed
-                    print(colored(f'[SUCCESS]: File {objName} has been succesfully analysed.', 'green'))
+                    print(colored(f'[SUCCESS]: File {absoluteObjPath} has been succesfully analysed.', 'green'))
 
                 # If any exception/error occured - catch it here!
                 except rosbag.ROSBagException as err:
@@ -116,7 +117,7 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
         elif os.path.isdir(absoluteObjPath) and isRecursive:
             analyse_dir_content(absoluteObjPath, isRecursive)
         elif os.path.isdir(absoluteObjPath) and not isRecursive:
-            print(colored(f'[INFO]: Ignoring {absoluteObjPath} - it is a directory. To analyse nested directories, use the -r flag.', 'cyan'))
+            print(colored(f'[INFO]: Ignoring {absoluteObjPath} - it is a directory.', 'cyan'))
         # If objName is rosbag_analysis.csv - ignore it
         elif os.path.basename(absoluteObjPath) == 'rosbag_analysis.csv':
             continue
