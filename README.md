@@ -4,11 +4,12 @@ This tool allows for simple and efficient search for potentially useful _ROSBags
 ### Installation
 The tool is targeted to use on the **NAS**, where it has already been installed and is ready to use (have a look at `Usage` section of this README), but you could theoretically also deploy it on your local machine. For this you need to:
 1. Clone the repository
-2. Install dependencies. You can do this on **Ubuntu** and **Debian** distributions by running the command below:
+2. Make sure that you are using Python version which is `>= 3.8`
+3. Install dependencies. You can do this on **Ubuntu** and **Debian** distributions by running the command below:
     ```
     sudo apt update
-    pip install --upgrade pip
-    pip install pandas argparse termcolor yaml csv rospy_message_converter rosbag
+    pip3 install --upgrade pip3
+    pip3 install pandas argparse termcolor rospy_message_converter rosbags
     ```
 
 ### Usage
@@ -51,7 +52,7 @@ python3 /path/to/filter_script/filter.py -d /home/amz-nas/pilatus-2022/2022-06-0
 ```
 
 ### Additional functionality
-###### _Work in progress_
+If there are any properties that you would like to filter the _ROSBags_ after, that you (and maybe also the rest of the team) could make use of, please create an issue in this repository! I am open for any suggestions!
 
 
 Maintainer: Stanislaw Piasecki
