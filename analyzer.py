@@ -136,7 +136,8 @@ def analyse_dir_content(absoluteDirPath, isRecursive=False):
 def main(args):
     # Check the path which user gave as input
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
-    assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist!'
+    assert args.d.startswith("/home/amz-nas"), f'[ERROR]: The supplied path must be absolute (so start with "/home/amz-nas")!'
+    assert os.path.isdir(args.d), f'[ERROR]: The passed path is not an existing directory!'
 
     analyse_dir_content(args.d, args.r)
     print(colored(f'[SUCCESS]: Execution finished! All files have been checked out.', 'green'))

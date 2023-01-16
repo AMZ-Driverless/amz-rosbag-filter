@@ -1,0 +1,18 @@
+version: '3.0'
+services:
+  amz-rosbag-filter:
+    build: .
+    # volumes:
+    #   - /home/amz-nas/pilatus-2021:/home/amz-nas/pilatus-2021:ro
+    #   - /home/amz-nas/pilatus-2022:/home/amz-nas/pilatus-2022:ro
+    #   - /home/amz-nas/bernina-2022:/home/amz-nas/bernina-2022:ro
+    #   - /home/amz-nas/bernina-2023:/home/amz-nas/bernina-2023:ro
+    #   - /home/amz-nas/castor-2023:/home/amz-nas/castor-2023:ro
+    #   - /home/amz-nas/analysis/pilatus-2021:/home/amz-nas/analysis/pilatus-2021
+    #   - /home/amz-nas/analysis/pilatus-2022:/home/amz-nas/analysis/pilatus-2022
+    #   - /home/amz-nas/analysis/bernina-2022:/home/amz-nas/analysis/bernina-2022
+    #   - /home/amz-nas/analysis/bernina-2023:/home/amz-nas/analysis/bernina-2023
+    #   - /home/amz-nas/analysis/castor-2023:/home/amz-nas/analysis/castor-2023
+    environment:
+      - SOURCE_DIR=/home/amz-nas
+      - OUR_DIR=/home/amz-nas/analysis
