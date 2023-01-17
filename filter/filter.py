@@ -4,7 +4,7 @@ import pandas as pd # Use to read the rosbag_analysis.csv file
 from termcolor import colored
 
 # Use to show full columns of pandas DataFrame (remove cutoff)
-pd.set_option('display.max_colwidth', None)
+pd.set_option('display.max_colwidth', 1600)
 
 def filter_arg_parser():
     # Create a parser object to handle commandline input
