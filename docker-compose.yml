@@ -1,18 +1,35 @@
 version: '3.0'
 services:
   amz-rosbag-filter:
-    build: .
-    # volumes:
-    #   - /home/amz-nas/pilatus-2021:/home/amz-nas/pilatus-2021:ro
-    #   - /home/amz-nas/pilatus-2022:/home/amz-nas/pilatus-2022:ro
-    #   - /home/amz-nas/bernina-2022:/home/amz-nas/bernina-2022:ro
-    #   - /home/amz-nas/bernina-2023:/home/amz-nas/bernina-2023:ro
-    #   - /home/amz-nas/castor-2023:/home/amz-nas/castor-2023:ro
-    #   - /home/amz-nas/analysis/pilatus-2021:/home/amz-nas/analysis/pilatus-2021
-    #   - /home/amz-nas/analysis/pilatus-2022:/home/amz-nas/analysis/pilatus-2022
-    #   - /home/amz-nas/analysis/bernina-2022:/home/amz-nas/analysis/bernina-2022
-    #   - /home/amz-nas/analysis/bernina-2023:/home/amz-nas/analysis/bernina-2023
-    #   - /home/amz-nas/analysis/castor-2023:/home/amz-nas/analysis/castor-2023
+    build: ./filter
+    volumes:
+      - /home/amz-nas/analysis/pilatus-2021:/analysis/pilatus-2021:ro
+      - /home/amz-nas/analysis/pilatus-2022:/analysis/pilatus-2022:ro
+      - /home/amz-nas/analysis/bernina-2022:/analysis/bernina-2022:ro
+      - /home/amz-nas/analysis/bernina-2023:/analysis/bernina-2023:ro
+      - /home/amz-nas/analysis/castor-2023:/analysis/castor-2023:ro
+    image: amz-rosbag-filter
+    stdin_open: true
+    tty: true
+    environment:
+      - SOURCE_DIR=/home/amz-nas
+      - OUR_DIR=/home/amz-nas/analysis
+  amz-rosbag-analyzer:
+    build: ./analyzer
+    volumes:
+      - /home/amz-nas/pilatus-2021:/pilatus-2021:ro
+      - /home/amz-nas/pilatus-2022:/pilatus-2022:ro
+      - /home/amz-nas/bernina-2022:/bernina-2022:ro
+      - /home/amz-nas/bernina-2023:/bernina-2023:ro
+      - /home/amz-nas/castor-2023:/castor-2023:ro
+      - /home/amz-nas/analysis/pilatus-2021:/analysis/pilatus-2021
+      - /home/amz-nas/analysis/pilatus-2022:/analysis/pilatus-2022
+      - /home/amz-nas/analysis/bernina-2022:/analysis/bernina-2022
+      - /home/amz-nas/analysis/bernina-2023:/analysis/bernina-2023
+      - /home/amz-nas/analysis/castor-2023:/analysis/castor-2023
+    image: amz-rosbag-analyzer
+    stdin_open: true
+    tty: true
     environment:
       - SOURCE_DIR=/home/amz-nas
       - OUR_DIR=/home/amz-nas/analysis
