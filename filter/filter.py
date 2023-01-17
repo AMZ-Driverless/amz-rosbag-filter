@@ -11,6 +11,9 @@ def filter_arg_parser():
     parser = argparse.ArgumentParser(description="ROSBag Filter", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
 
     # Add the different parser arguments
+    parser.add_argument('-d', type=str, help="Not optional - take a relative path to a directory and analyses all ROSBags within it", required=True)
+    parser.add_argument('-r', action='store_true', help="The directory with rosbags is filtered recursively (entire file tree starting at given path is filtered).")
+
     parser.add_argument('--per', action='store_true', help="Filter for rosbags where perception runs at ~10 Hz")
     parser.add_argument('--est', action='store_true', help="Filter for rosbags where estimation runs at ~10 Hz")
     parser.add_argument('--con', action='store_true', help="Filter for rosgags where control runs at ~10 Hz")
@@ -18,9 +21,6 @@ def filter_arg_parser():
     parser.add_argument('--vel', type=int, default=1, help="Filter for rosbags where avg. car velocity (in m/s) is at least VEL (default: 1)")
     parser.add_argument('--laps', type=int, default=0, help="Filter for rosbags where car does at least LAPS laps (default: 0)")
     parser.add_argument('--dur', type=int, default=60, help="Filter for rosbags which are at least DUR seconds long (default: 60)")
-
-    parser.add_argument('-d', type=str, help="Not optional - take an absolute path to a directory and analyses all ROSBags within it", required=True)
-    parser.add_argument('-r', action='store_true', help="The directory with rosbags is filtered recursively (entire file tree starting at given path is filtered).")
 
     args = parser.parse_args()
     return args
