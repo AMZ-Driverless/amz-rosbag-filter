@@ -13,7 +13,6 @@ services:
     tty: true
     environment:
       - SOURCE_DIR=/home/amz-nas
-      - OUR_DIR=/home/amz-nas/analysis
   amz-rosbag-analyzer:
     build: ./analyzer
     volumes:
@@ -27,4 +26,3 @@ services:
     tty: true
     environment:
       - SOURCE_DIR=/home/amz-nas
-      - OUR_DIR=/home/amz-nas/analysis
