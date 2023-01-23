@@ -11,7 +11,7 @@ def filter_arg_parser():
     parser = argparse.ArgumentParser(description="ROSBag Filter", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
 
     # Add the different parser arguments
-    parser.add_argument('-d', type=str, help="Not optional - take a relative path to a directory and analyses all ROSBags within it", required=True)
+    parser.add_argument('-d', type=str, help="Not optional (!)- take a relative path to a directory and analyses all ROSBags within it", required=True)
     parser.add_argument('-r', action='store_true', help="The directory with rosbags is filtered recursively (entire file tree starting at given path is filtered).")
 
     parser.add_argument('--per', action='store_true', help="Filter for rosbags where perception runs at ~10 Hz")
