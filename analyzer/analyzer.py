@@ -136,8 +136,9 @@ def analyse_dir_content(dirPath, isRecursive=False):
 def main(args):
     # Check the path which user gave as input
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
-    assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist or cannot be searched!'
+    assert os.path.isdir(args.d), f'[ERROR]: The passed directory {args.d} does not exist or cannot be searched!'
 
+    print(colored(f'[INFO]: Starting analysis: ', 'cyan'))
     analyse_dir_content(args.d, args.r)
     print(colored(f'[SUCCESS]: Execution finished! All files have been checked out.', 'green'))
 

@@ -4,7 +4,7 @@ import pandas as pd # Use to read the rosbag_analysis.csv file
 from termcolor import colored
 
 # Use to show full columns of pandas DataFrame (remove cutoff)
-pd.set_option('display.max_colwidth', 1600)
+pd.set_option('display.max_colwidth', None)
 
 def filter_arg_parser():
     # Create a parser object to handle commandline input
@@ -48,8 +48,9 @@ def filter_dir_content(dirPath, args, isRecursive=False):
 
 def main(args):
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
-    assert os.path.isdir(args.d), f'[ERROR]: The passed directory does not exist or cannot be searched!'
+    assert os.path.isdir(args.d), f'[ERROR]: The passed directory {args.d} does not exist or cannot be searched!'
 
+    print(colored(f'[INFO]: List of potentially useful files: ', 'cyan'))
     filter_dir_content(args.d, args, args.r)
 
     print(colored('Filtering completed!', 'cyan'))
