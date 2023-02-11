@@ -28,6 +28,7 @@ def filter_arg_parser():
     return args
 
 def filter_dir_content(dirPath, args, isRecursive=False):
+    global rosbag_counter
     analysisFileName = f'{dirPath}/rosbag_analysis.csv'
     if not os.path.isfile(analysisFileName):
         runAnalyser = input(colored(f'[ERROR]: The file rosbag_analysis.csv has not been found in the directory /home/amz-nas{dirPath}. Please run analyzer on this directory first.', 'red'))
@@ -51,6 +52,7 @@ def filter_dir_content(dirPath, args, isRecursive=False):
         rosbag_counter += len(df.index)
 
 def main(args):
+    global rosbag_counter
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory {args.d} does not exist or cannot be searched!'
 
