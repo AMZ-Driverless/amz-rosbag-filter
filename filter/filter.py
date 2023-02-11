@@ -4,7 +4,9 @@ import pandas as pd # Use to read the rosbag_analysis.csv file
 from termcolor import colored
 
 # Use to show full columns of pandas DataFrame (remove cutoff)
-pd.set_option('display.max_colwidth', None)
+pd.set_option('display.max_colwidth', 1000)
+# Global counter to count how many files have been found
+rosbag_counter = 0
 
 def filter_arg_parser():
     # Create a parser object to handle commandline input
@@ -44,16 +46,17 @@ def filter_dir_content(dirPath, args, isRecursive=False):
     # Filter the pandas DataFrame for ROSBags which meet the criteria given by the user
     df = df.loc[(df["per"] >= args.per) & (df["est"] >= args.est) & (df["con"] >= args.con) & (df["vel"] >= args.vel) & (df["laps"] >= args.laps) & (df["dur"] >= args.dur)]
     # Print the paths of the filtered ROSBags
-    print(df['file_name'].to_string(index=False))
+    if not df.empty:
+        print(df['file_name'].to_string(index=False))
+        rosbag_counter += len(df.index)
 
 def main(args):
     assert not args.d == "", f'[ERROR]: The script requires the path of the directory to analyse as parameter!'
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory {args.d} does not exist or cannot be searched!'
 
-    print(colored(f'[INFO]: List of potentially useful files: ', 'cyan'))
+    print(colored(f'[INFO]: List of potentially useful ROSBags: ', 'cyan'))
     filter_dir_content(args.d, args, args.r)
-
-    print(colored('Filtering completed!', 'cyan'))
+    print(colored(f'Filtering completed! A total of {rosbag_counter} ROSBags have been found.', 'cyan'))
 
 if __name__ == "__main__":
     args = filter_arg_parser()
