@@ -51,7 +51,7 @@ def check_module_freq(objPath):
 
     return returnDict
 
-def check_rosbag_properties(objPath):
+def check_vel_and_laps(objPath):
     accumulatorDict = { "vel": 0.0, "laps": 0 } # Add more accumulators if required
     msgTopics = ["/can_msgs/velocity_estimation", "/common/lap_counter"] # Add more topics if required
 
@@ -75,6 +75,22 @@ def check_rosbag_properties(objPath):
         accumulatorDict["vel"] /= velMsgCounter
 
     return accumulatorDict
+
+def check_sensor_presence(objPath):
+    sensorDict = { "ve": False, "imu": False, "ass": False, "ins": False }
+    types = yaml.safe_load(rosbag.Bag(objPath, 'r')._get_yaml_info())["types"]
+
+    for type in types:
+        if type["type"] == 'can_msgs/StateDt':
+            sensorDict["ve"] = True
+        if type["type"] == 'can_msgs/IMU':
+            sensorDict["imu"] = True
+        if type["type"] == 'can_msgs/AssMeasurement':
+            sensorDict["ass"] = True
+        if type["type"] == 'can_msgs/INSStatus':
+            sensorDict["ins"] = True
+
+    return sensorDict
 
 def is_rosbag(objPath):
     file_name, file_extension = os.path.splitext(objPath)
@@ -109,8 +125,10 @@ def analyse_dir_content(dirPath, isRecursive=False):
                 # Add row corresponding to current file to CSV
                 try:
                     moduleFreq = check_module_freq(objPath)
-                    rosbagProperties = check_rosbag_properties(objPath)
-                    row = [objPath, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), rosbagProperties["vel"], rosbagProperties["laps"], moduleFreq["dur"]]
+                    velAndLaps = check_vel_and_laps(objPath)
+                    sensorPresence = check_sensor_presence(objPath)
+                    row = [objPath, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), velAndLaps["vel"], velAndLaps["laps"],
+                           moduleFreq["dur"], int(sensorPresence["ve"]), int(sensorPresence["imu"]), int(sensorPresence["ass"]), int(sensorPresence["ins"])]
                     appender.writerow(row)
 
                     # Inform the user via standard output that file was succesfully analysed
