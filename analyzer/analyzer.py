@@ -10,7 +10,7 @@ import math
 def analyzer_arg_parser():
      # Create a parser object to handle commandline input
     parser = argparse.ArgumentParser(description="ROSBag Analyzer", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
-    parser.add_argument('-d', type=str, help="Not optional (!)- take a relative path to a directory and analyses all ROSBags within it", required=True)
+    parser.add_argument('-d', type=str, help="Not optional (!) - take a relative path to a directory and analyses all ROSBags within it", required=True)
     parser.add_argument('-r', action='store_true', help="The directory passed with -d flag is searched recursively (entire file tree starting at given path is analysed). WARNING - can be very slow!")
 
     args = parser.parse_args()
@@ -112,7 +112,7 @@ def analyse_dir_content(dirPath, isRecursive=False):
     # Add header to the CSV file
     with open(analysisFilePath, 'w', encoding='UTF-8') as f:
         writer = csv.writer(f)
-        header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur']
+        header = ['file_name', 'per', 'est', 'con', 'vel', 'laps', 'dur', 've', 'imu', 'ass', 'ins']
         writer.writerow(header)
 
     # Run analysis for this directory
