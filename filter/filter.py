@@ -13,16 +13,21 @@ def filter_arg_parser():
     parser = argparse.ArgumentParser(description="ROSBag Filter", epilog="If you have propositions for other flags,\nfeel free to create an issue on GitHub!\nMaintainer: S.Piasecki")
 
     # Add the different parser arguments
-    parser.add_argument('-d', type=str, help="Not optional (!)- take a relative path to a directory and analyses all ROSBags within it", required=True)
-    parser.add_argument('-r', action='store_true', help="The directory with rosbags is filtered recursively (entire file tree starting at given path is filtered).")
+    parser.add_argument('-d', type=str, help="Not optional (!) - take a relative path to a directory and analyses all ROSBags within it", required=True)
+    parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is filtered).")
 
-    parser.add_argument('--per', action='store_true', help="Filter for rosbags where perception runs at ~10 Hz")
-    parser.add_argument('--est', action='store_true', help="Filter for rosbags where estimation runs at ~10 Hz")
-    parser.add_argument('--con', action='store_true', help="Filter for rosgags where control runs at ~10 Hz")
+    parser.add_argument('--per', action='store_true', help="Filter for ROSBags where perception runs at ~10 Hz")
+    parser.add_argument('--est', action='store_true', help="Filter for ROSBags where estimation runs at ~10 Hz")
+    parser.add_argument('--con', action='store_true', help="Filter for ROSBags where control runs at ~10 Hz")
 
-    parser.add_argument('--vel', type=int, default=1, help="Filter for rosbags where avg. car velocity (in m/s) is at least VEL (default: 1)")
-    parser.add_argument('--laps', type=int, default=0, help="Filter for rosbags where car does at least LAPS laps (default: 0)")
-    parser.add_argument('--dur', type=int, default=60, help="Filter for rosbags which are at least DUR seconds long (default: 60)")
+    parser.add_argument('--vel', type=int, default=1, help="Filter for ROSBags where avg. car velocity (in m/s) is at least VEL (default: 1)")
+    parser.add_argument('--laps', type=int, default=0, help="Filter for ROSBags where car does at least LAPS laps (default: 0)")
+    parser.add_argument('--dur', type=int, default=60, help="Filter for ROSBags which are at least DUR seconds long (default: 60)")
+
+    parser.add_argument('--ve', action='store_true', help="Filter for ROSBags with VE data")
+    parser.add_argument('--imu', action='store_true', help="Filter for ROSBags with IMU data")
+    parser.add_argument('--ass', action='store_true', help="Filter for ROSBags with ASS data")
+    parser.add_argument('--ins', action='store_true', help="Filter for ROSBags with INS data")
 
     args = parser.parse_args()
     return args
@@ -45,7 +50,8 @@ def filter_dir_content(dirPath, args, isRecursive=False):
     # File rosbag_analysis.csv exists and has been found, hence proceed with the filtering
     df = pd.read_csv(analysisFileName)
     # Filter the pandas DataFrame for ROSBags which meet the criteria given by the user
-    df = df.loc[(df["per"] >= args.per) & (df["est"] >= args.est) & (df["con"] >= args.con) & (df["vel"] >= args.vel) & (df["laps"] >= args.laps) & (df["dur"] >= args.dur)]
+    df = df.loc[(df["per"] >= args.per) & (df["est"] >= args.est) & (df["con"] >= args.con) & (df["vel"] >= args.vel) & (df["laps"] >= args.laps)
+                & (df["dur"] >= args.dur) & (df["ve"] >= args.ve) & (df["imu"] >= args.imu) & (df["ass"] >= args.ass) & (df["ins"] >= args.ins)]
     # Print the paths of the filtered ROSBags
     if not df.empty:
         print(df['file_name'].to_string(index=False))
