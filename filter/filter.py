@@ -14,7 +14,7 @@ def filter_arg_parser():
 
     # Add the different parser arguments
     parser.add_argument('-d', type=str, help="Not optional (!) - take a relative path to a directory and analyses all ROSBags within it", required=True)
-    parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is filtered).")
+    parser.add_argument('-r', action='store_true', help="The directory with ROSBags is filtered recursively (entire file tree starting at given path is filtered)")
 
     parser.add_argument('--per', action='store_true', help="Filter for ROSBags where perception runs at ~10 Hz")
     parser.add_argument('--est', action='store_true', help="Filter for ROSBags where estimation runs at ~10 Hz")
