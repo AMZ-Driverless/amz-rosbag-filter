@@ -62,8 +62,9 @@ def check_vel_and_laps(objPath):
         if topic == "/can_msgs/velocity_estimation":
             velX = msgDict["vel"]["x"]
             velY = msgDict["vel"]["y"]
-            accumulatorDict["vel"] += math.sqrt(velX ** 2 + velY ** 2)
-            velMsgCounter += 1
+            if velX >= 0.01 or velY >= 0.01:
+                accumulatorDict["vel"] += math.sqrt(velX ** 2 + velY ** 2)
+                velMsgCounter += 1
 
         if topic == "/common/lap_counter":
             accumulatorDict["laps"] += msgDict["data"]
