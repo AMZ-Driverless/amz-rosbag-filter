@@ -1,4 +1,4 @@
-# AMZ ROSBag Filter v2.0
+# AMZ ROSBag Filter v2.2
 
 ## What is it?
 
@@ -9,7 +9,7 @@ This tool allows for simple and efficient search for potentially useful _ROSBags
 The tool is targeted to use on the **NAS**, where it has already been installed and is **ready to use** (have a look at `Usage` section of this README), but you could theoretically also deploy it on your local machine. For this you need to:
 
 1. Make sure you have Docker installed
-2. Clone the `v2.0` tag of the repository - `git clone -b v2.0 https://github.com/AMZ-Driverless/amz-rosbag-filter.git`
+2. Clone the `v2.2` tag of the repository - `git clone -b v2.2 https://github.com/AMZ-Driverless/amz-rosbag-filter.git`
 3. Adapt the paths of the mounts in the `docker-compose.yml`. You need to mount each directory that you would like to analyze/filter to a directory in the Docker container. For example: in the NAS `docker-compose.yml`, the directory `/home/amz-nas/castor-2023` is mounted to the `/castor-2023` directory in the file system of the container. In order to analyze/filter that directory you have to pass the **container** path as argument to the script
 4. Run `docker-compose build` in the root of directory
 5. Make sure the build was successful by running `docker images` and making sure `amz-rosbag-analyzer` and `amz-rosbag-filter` are both listed
