@@ -91,6 +91,16 @@ def check_sensor_presence(objPath):
         if type["type"] == 'can_msgs/INSStatus':
             sensorDict["ins"] = True
 
+    if 'can_msgs/StateMachines' in types:
+        for topic, msg, t in rosbag.Bag(objPath, 'r').read_messages(topics=['/can_msgs/state_machines']):
+            msgDict = message_converter.convert_ros_message_to_dictionary(msg)
+            if not msgDict.ins_fail:
+                sensorDict["ins"] = True
+            if not msgDict.imu_fail:
+                sensorDict["imu"] = True
+            if not msgDict.ass_fail:
+                sensorDict["ass"] = True
+
     return sensorDict
 
 def is_rosbag(objPath):
