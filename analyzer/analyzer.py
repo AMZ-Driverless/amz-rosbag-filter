@@ -16,9 +16,9 @@ def analyzer_arg_parser():
     args = parser.parse_args()
     return args
 
-def check_module_freq(objPath):
+def check_module_freq(rosBag):
     # Read rosbag info
-    infoDict = yaml.safe_load(rosbag.Bag(objPath, 'r')._get_yaml_info())
+    infoDict = yaml.safe_load(rosBag._get_yaml_info())
     # Create a list of edge cases - so topics which should be excluded from the frequency search for various reasons
     edgeCases = ['/estimation/boundary', '/estimation/viz/point_of_interest', '/estimation/viz/boundary_selector', '/estimation/local_map_mode']
     # This value is set to 9 because if something runs at (for example) 9.6 Hz, we would still like to count it as 10 Hz
@@ -51,12 +51,12 @@ def check_module_freq(objPath):
 
     return returnDict
 
-def check_vel_and_laps(objPath):
+def check_vel_and_laps(rosBag):
     accumulatorDict = { "vel": 0.0, "laps": 0 } # Add more accumulators if required
     msgTopics = ["/can_msgs/velocity_estimation", "/common/lap_counter"] # Add more topics if required
 
     velMsgCounter = 0
-    for topic, msg, t in rosbag.Bag(objPath, 'r').read_messages(topics=msgTopics):
+    for topic, msg, t in rosBag.read_messages(topics=msgTopics):
         msgDict = message_converter.convert_ros_message_to_dictionary(msg)
 
         if topic == "/can_msgs/velocity_estimation":
@@ -77,9 +77,9 @@ def check_vel_and_laps(objPath):
 
     return accumulatorDict
 
-def check_sensor_presence(objPath):
+def check_sensor_presence(rosBag):
     sensorDict = { "ve": False, "imu": False, "ass": False, "ins": False }
-    types = yaml.safe_load(rosbag.Bag(objPath, 'r')._get_yaml_info())["types"]
+    types = yaml.safe_load(rosBag._get_yaml_info())["types"]
 
     for type in types:
         if type["type"] == 'can_msgs/StateDt':
@@ -92,7 +92,7 @@ def check_sensor_presence(objPath):
             sensorDict["ins"] = True
 
     if 'can_msgs/StateMachines' in types:
-        for topic, msg, t in rosbag.Bag(objPath, 'r').read_messages(topics=['/can_msgs/state_machines']):
+        for topic, msg, t in rosBag.read_messages(topics=['/can_msgs/state_machines']):
             msgDict = message_converter.convert_ros_message_to_dictionary(msg)
             if not msgDict.ins_fail:
                 sensorDict["ins"] = True
@@ -113,7 +113,15 @@ def is_rosbag(objPath):
 
     return True
 
-def analyse_dir_content(dirPath, isRecursive=False):
+def generate_row(rosBag, objPath, appender):
+    moduleFreq = check_module_freq(rosBag)
+    velAndLaps = check_vel_and_laps(rosBag)
+    sensorPresence = check_sensor_presence(rosBag)
+    row = [objPath, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), velAndLaps["vel"], velAndLaps["laps"],
+            moduleFreq["dur"], int(sensorPresence["ve"]), int(sensorPresence["imu"]), int(sensorPresence["ass"]), int(sensorPresence["ins"])]
+    appender.writerow(row)
+
+def analyse_dir_content(dirPath, isRecursive=False, reindexBags=False):
     # Remove existing rosbag_analysis.csv file in this directory (could be outdated)
     analysisFilePath = f'{dirPath}/rosbag_analysis.csv'
     if os.path.isfile(analysisFilePath):
@@ -135,13 +143,8 @@ def analyse_dir_content(dirPath, isRecursive=False):
                 appender = csv.writer(f)
                 # Add row corresponding to current file to CSV
                 try:
-                    moduleFreq = check_module_freq(objPath)
-                    velAndLaps = check_vel_and_laps(objPath)
-                    sensorPresence = check_sensor_presence(objPath)
-                    row = [objPath, int(moduleFreq["per"]), int(moduleFreq["est"]), int(moduleFreq["con"]), velAndLaps["vel"], velAndLaps["laps"],
-                           moduleFreq["dur"], int(sensorPresence["ve"]), int(sensorPresence["imu"]), int(sensorPresence["ass"]), int(sensorPresence["ins"])]
-                    appender.writerow(row)
-
+                    rosBag = rosbag.Bag(objPath, 'r')
+                    generate_row(rosBag, objPath, appender)
                     # Inform the user via standard output that file was succesfully analysed
                     print(colored(f'[SUCCESS]: File {objPath} has been succesfully analysed.', 'green'))
                 # If any exception/error occured - catch it here!
@@ -168,7 +171,7 @@ def main(args):
     assert os.path.isdir(args.d), f'[ERROR]: The passed directory {args.d} does not exist or cannot be searched!'
 
     print(colored(f'[INFO]: Starting analysis: ', 'cyan'))
-    analyse_dir_content(args.d, args.r)
+    analyse_dir_content(args.d, args.r, args.reindex)
     print(colored(f'[SUCCESS]: Execution finished! All files have been checked out.', 'green'))
 
 if __name__ == "__main__":
